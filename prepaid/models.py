@@ -18,7 +18,7 @@ class UnitPack(models.Model):
     # Normally we only deal with not expired and not empty unit packs,
     # but sometimes we need to peek into expired.
     all_objects = models.Manager()
-    objects = ValidUnitPackManager()
+    objects = models.Manager()
 
     user = models.ForeignKey(auth.models.User)
     quantity = models.IntegerField()
@@ -48,14 +48,13 @@ class UnitPack(models.Model):
         ups = cls.get_user_packs(user)
         if sum(up.quantity for up in ups) < quantity:
             raise ValueError("User does not have enough units.")
-        for up in ups:
-            if up.quantity >= quantity:
-                up.quantity -= quantity
-                up.save()
-                return
-            quantity -= up.quantity
-            up.quantity = 0
-            up.save()
+        
+        newup = UnitPack()
+        newup.quantity = -quantity
+        newup.initial_quantity = 0
+        newup.user = user
+        newup.timestamp = datetime.datetime.now()
+        newup.save()
 
 # provide default value for initial_quantity
 def _handle_pre_save(sender, instance=None, **kwargs):
