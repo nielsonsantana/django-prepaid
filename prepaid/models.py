@@ -3,6 +3,7 @@ import datetime
 from django.conf import settings
 from django.contrib import auth
 from django.db import models
+from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 
 class ValidUnitPackManager(models.Manager):
     def get_query_set(self):
@@ -21,12 +22,15 @@ class UnitPack(models.Model):
     objects = models.Manager()
 
     user = models.ForeignKey(auth.models.User)
-    quantity = models.IntegerField()
-    expires = models.DateField(default=_default_expires)
+    quantity = models.IntegerField(_('quantity'), db_index=True)
+    expires = models.DateField(_('expire'),default=_default_expires, db_index=True)
+
+    # field used to associate one determined operation/task with the consum
+    # reference_code = models.CharField(max_length=40, null=True, blank=True, unique=True, db_index=True)
 
     # bookkeeping
-    timestamp = models.DateTimeField(auto_now_add=True)
-    initial_quantity = models.IntegerField()
+    timestamp = models.DateTimeField(_('created'),auto_now_add=True, db_index=True, blank=True)
+    initial_quantity = models.IntegerField(db_index=True, blank=True)
 
     class Meta:
         ordering = ('expires',)
@@ -41,7 +45,8 @@ class UnitPack(models.Model):
 
     @classmethod
     def get_user_credits(cls, user):
-        return sum(up.quantity for up in cls.get_user_packs(user))
+        credits = sum(up.quantity for up in cls.get_user_packs(user))
+        return credits
 
     @classmethod
     def consume(cls, user, quantity=1):
@@ -61,4 +66,5 @@ def _handle_pre_save(sender, instance=None, **kwargs):
     assert instance is not None
     if instance.pk is None and instance.initial_quantity is None:
         instance.initial_quantity = instance.quantity
+
 models.signals.pre_save.connect(_handle_pre_save, sender=UnitPack)
