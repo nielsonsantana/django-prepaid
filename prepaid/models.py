@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import auth
 from django.db import models
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from signals import get_credits_cache, set_credits_cache, is_credits_cached
 
 class ValidUnitPackManager(models.Manager):
     def get_query_set(self):
@@ -26,7 +27,7 @@ class UnitPack(models.Model):
     expires = models.DateField(_('expire'),default=_default_expires, db_index=True)
 
     # field used to associate one determined operation/task with the consum
-    # reference_code = models.CharField(max_length=40, null=True, blank=True, unique=True, db_index=True)
+    reference_code = models.CharField(max_length=40, null=True, blank=True, db_index=True)
 
     # bookkeeping
     timestamp = models.DateTimeField(_('created'),auto_now_add=True, db_index=True, blank=True)
@@ -49,7 +50,7 @@ class UnitPack(models.Model):
         return credits
 
     @classmethod
-    def consume(cls, user, quantity=1):
+    def consume(cls, user, quantity=1, reference_code=""):
         ups = cls.get_user_packs(user)
         if sum(up.quantity for up in ups) < quantity:
             raise ValueError("User does not have enough units.")
@@ -59,6 +60,7 @@ class UnitPack(models.Model):
         newup.initial_quantity = 0
         newup.user = user
         newup.timestamp = datetime.datetime.now()
+        newup.reference_code = reference_code
         newup.save()
 
 # provide default value for initial_quantity
