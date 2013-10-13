@@ -36,21 +36,24 @@ class UnitPack(models.Model):
     class Meta:
         ordering = ('expires',)
 
+    # def __unicode__(self):
+    #     return u"%s" % (self.user )
+
     def is_valid(self):
         return self.quantity>0 and self.expires>datetime.date.today()
     is_valid.boolean = True
 
     @classmethod
-    def get_user_packs(cls, user):
-        return cls.objects.filter(user=user)
+    def get_user_packs(cls, user, reference_code=None):
+        return cls.objects.filter(user=user, reference_code=reference_code)
 
     @classmethod
-    def get_user_credits(cls, user):
-        credits = sum(up.quantity for up in cls.get_user_packs(user))
+    def get_user_credits(cls, user, reference_code=None):
+        credits = sum(up.quantity for up in cls.get_user_packs(user, reference_code))
         return credits
 
     @classmethod
-    def consume(cls, user, quantity=1, reference_code=""):
+    def consume(cls, user, quantity=1, reference_code=None):
         ups = cls.get_user_packs(user)
         if sum(up.quantity for up in ups) < quantity:
             raise ValueError("User does not have enough units.")

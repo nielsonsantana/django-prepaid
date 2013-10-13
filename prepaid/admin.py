@@ -4,7 +4,7 @@ from models import UnitPack
 
 class UnitPackAdmin(admin.ModelAdmin):
     list_display = ('timestamp', 'user', 'quantity', 'expires',
-                    'initial_quantity', 'is_valid')
+                    'initial_quantity', 'is_valid', 'reference_code')
     exclude = ('initial_quantity',)
     ordering = ('-timestamp',)
     date_hierarchy = 'timestamp'
