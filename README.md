@@ -1,8 +1,15 @@
+## Warning:
+
+This project differ from the original [django-prepaid](https://github.com/zhaque/django-prepaid).
+On this project, each Unit consumed generate a new row on the database,
+like a historical of consumption.
+
+
 Django prepaid
 ==============
 
 Django-prepaid is a low-level Django application to support prepaid
-service functionality. User can purchase a pack of `units' (it is up
+service functionality. User can purchase a pack of `units` (it is up
 to project to define meaning of units, but think prepaid phone service
 and calling minutes to see the desired meaning). Every pack has an
 expiry date, defaulting to `settings.PREPAID_DEFAULT_EXPIRY_PERIOD'
